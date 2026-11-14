@@ -1,16 +1,15 @@
 #ifndef APOLLO_FILESYSTEM_H
 #define APOLLO_FILESYSTEM_H
 
-#include <stdint.h>
-#include <stdbool.h>
+#include "types.h"
 
 #define FS_MAX_FILENAME_LENGTH 64
 #define FS_MAX_PATH_LENGTH 256
-#define FS_MAX_FILE_SIZE (64 * 1024)     // 64KB max file size
+#define FS_MAX_FILE_SIZE (16 * 1024 * 1024)
 #define FS_MAX_FILES 256
 #define FS_MAX_DIRECTORIES 64
-#define FS_BLOCK_SIZE 512
-#define FS_MAX_BLOCKS 1024
+#define FS_TOOL_BUFFER_SIZE 16384
+#define FS_BOOT_DIRECTORY "/boot"
 
 typedef enum {
     FS_TYPE_FILE = 1,
@@ -31,7 +30,8 @@ typedef struct {
     uint32_t modified_time;
     uint8_t permissions;
     uint32_t parent_id;
-    uint32_t data_block;
+    uint8_t* data;
+    uint32_t capacity_pages;
     bool is_valid;
 } fs_file_info_t;
 
@@ -50,6 +50,7 @@ typedef struct {
 } fs_file_handle_t;
 
 void filesystem_initialize(void);
+uint32_t filesystem_add_boot_modules(void);
 
 bool filesystem_create_directory(const char* path);
 bool filesystem_remove_directory(const char* path);
@@ -69,6 +70,7 @@ void filesystem_close_file(fs_file_handle_t* handle);
 uint32_t filesystem_read_file(fs_file_handle_t* handle, void* buffer, uint32_t size);
 uint32_t filesystem_write_file(fs_file_handle_t* handle, const void* buffer, uint32_t size);
 bool filesystem_seek_file(fs_file_handle_t* handle, uint32_t position);
+bool filesystem_truncate_file(const char* path, uint32_t size);
 
 bool filesystem_resolve_path(const char* path, char* resolved_path, uint32_t buffer_size);
 uint32_t filesystem_get_free_space(void);
@@ -78,8 +80,8 @@ void filesystem_format(void);
 typedef struct {
     uint32_t total_files;
     uint32_t total_directories;
-    uint32_t free_blocks;
-    uint32_t used_blocks;
+    uint32_t free_pages;
+    uint32_t used_pages;
     uint32_t total_space;
     uint32_t free_space;
 } fs_stats_t;

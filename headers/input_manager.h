@@ -1,8 +1,7 @@
 #ifndef APOLLO_INPUT_MANAGER_H
 #define APOLLO_INPUT_MANAGER_H
 
-#include <stdint.h>
-#include <stdbool.h>
+#include "types.h"
 
 #define SCANCODE_UP_ARROW 0x48
 #define SCANCODE_DOWN_ARROW 0x50

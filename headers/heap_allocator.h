@@ -1,8 +1,7 @@
 #ifndef APOLLO_HEAP_ALLOCATOR_H
 #define APOLLO_HEAP_ALLOCATOR_H
 
-#include <stddef.h>
-#include <stdint.h>
+#include "types.h"
 
 void heap_allocator_initialize(void);
 

@@ -1,13 +1,20 @@
 global boot_entry_point
+global multiboot_magic
+global multiboot_info
 extern apollo_long_mode_entry
+
+P2_TABLE_COUNT equ 4
+PAGE_TABLE_PAGES equ 2 + P2_TABLE_COUNT
 
 section .multiboot
 align 4
 
+MB1_FLAGS equ 0x00000001          ; Page align modules so files can use them in place
+
 multiboot1_header:
     dd 0x1BADB002                    ; Multiboot1 magic
-    dd 0x00000000                    ; Flags
-    dd -(0x1BADB002 + 0x00000000)   ; Checksum
+    dd MB1_FLAGS
+    dd -(0x1BADB002 + MB1_FLAGS)     ; Checksum
 
 align 8
 multiboot2_header:
@@ -15,6 +22,11 @@ multiboot2_header:
     dd 0                             ; Architecture (i386)
     dd multiboot2_end - multiboot2_header  ; Header length
     dd -(0xe85250d6 + 0 + (multiboot2_end - multiboot2_header))  ; Checksum
+
+    align 8
+    dw 6                             ; Type: module alignment
+    dw 0
+    dd 8
 
     align 8
     dw 0                             ; Type: end
@@ -29,9 +41,8 @@ boot_entry_point:
     cli
     
     mov esp, boot_stack_top
-    
-    push ebx    ; Multiboot info structure
-    push eax    ; Multiboot magic
+    mov [multiboot_magic], eax
+    mov [multiboot_info], ebx
     
     cmp eax, 0x2BADB002    ; Multiboot1 magic
     je continue_boot
@@ -75,27 +86,34 @@ check_cpu_features:
     
     ret
 
+; Identity maps the first 4GB so PCI MMIO near the top of the 32 bit space is reachable
 setup_page_tables:
     mov edi, p4_table
-    mov cr3, edi
     xor eax, eax
-    mov ecx, 4096
+    mov ecx, PAGE_TABLE_PAGES * 1024
     rep stosd
-    mov edi, cr3
-    
+
     mov dword [p4_table], p3_table + 0x03
-    mov dword [p3_table], p2_table + 0x03
-    
-    mov edi, p2_table
+    mov edi, p3_table
+    mov eax, p2_tables + 0x03
+    mov ecx, P2_TABLE_COUNT
+
+.map_p3_table:
+    mov [edi], eax
+    add eax, 4096
+    add edi, 8
+    loop .map_p3_table
+
+    mov edi, p2_tables
     mov ebx, 0x83          ; Present + writable + large page
-    mov ecx, 512           ; 512 entries
+    mov ecx, P2_TABLE_COUNT * 512
 
 .map_p2_table:
     mov [edi], ebx
     add ebx, 0x200000      ; 2MB
     add edi, 8
     loop .map_p2_table
-    
+
     ret
 
 enter_long_mode:
@@ -152,7 +170,8 @@ halt:
     hlt
     jmp halt
 
-section .rodata
+; The CPU sets the accessed bit in these descriptors, so they cannot live in rodata
+section .data
 align 8
 gdt64:
     dq 0                             ; Null descriptor
@@ -164,14 +183,19 @@ gdt64_pointer:
     dw gdt64_end - gdt64 - 1         ; Limit
     dd gdt64                         ; Base
 
+multiboot_magic:
+    dd 0
+multiboot_info:
+    dd 0
+
 section .bss
 align 4096
 p4_table:
     resb 4096
 p3_table:
-    resb 4096  
-p2_table:
     resb 4096
+p2_tables:
+    resb 4096 * P2_TABLE_COUNT
 
 boot_stack_bottom:
     resb 16384

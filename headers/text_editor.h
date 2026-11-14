@@ -1,12 +1,13 @@
 #ifndef APOLLO_TEXT_EDITOR_H
 #define APOLLO_TEXT_EDITOR_H
 
-#include <stdint.h>
-#include <stdbool.h>
+#include "types.h"
 
 #define TEXT_EDITOR_MAX_LINES 100
 #define TEXT_EDITOR_MAX_LINE_LENGTH 80
 #define TEXT_EDITOR_MAX_FILENAME 32
+#define TEXT_EDITOR_SEARCH_BUFFER_SIZE 40
+#define TEXT_EDITOR_CLIPBOARD_SIZE 2048
 
 void text_editor_initialize(void);
 

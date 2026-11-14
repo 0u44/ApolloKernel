@@ -54,4 +54,8 @@ typedef enum {
     APOLLO_ERROR_NOT_IMPLEMENTED = -7
 } apollo_result_t;
 
+void string_copy(char* dest, const char* src);
+void* memset(void* dest, int value, size_t size);
+void* memcpy(void* dest, const void* src, size_t size);
+
 #endif
