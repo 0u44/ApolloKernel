@@ -1,6 +1,6 @@
 #include "heap_allocator.h"
-#include <stdint.h>
-#include <stdbool.h>
+#include "types.h"
+
 
 #define HEAP_SIZE_BYTES (16 * 1024 * 1024)  // 16MB heap
 #define ALIGNMENT_SIZE 8
@@ -234,6 +234,5 @@ size_t heap_allocator_get_total_memory(void) {
 }
 
 void heap_allocator_dump_info(void) {
-    // Needs to provide detailed heap information
-    // For now, this is used internally for debugging
+    // Used internally for debugging
 }

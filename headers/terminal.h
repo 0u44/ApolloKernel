@@ -1,8 +1,7 @@
 #ifndef APOLLO_TERMINAL_H
 #define APOLLO_TERMINAL_H
 
-#include <stdint.h>
-#include <stddef.h>
+#include "types.h"
 
 typedef enum {
     VGA_COLOR_BLACK = 0,
@@ -35,6 +34,12 @@ void terminal_set_custom_color(uint8_t index, uint8_t red, uint8_t green, uint8_
 void terminal_enable_cursor(void);
 void terminal_disable_cursor(void);
 void terminal_backspace(void);
+uint32_t terminal_get_column(void);
+void terminal_set_column(uint32_t column);
+uint8_t terminal_get_color(void);
+
+void terminal_draw_cell(uint32_t row, uint32_t col, char c, uint8_t color);
+void terminal_place_cursor(uint32_t row, uint32_t col);
 
 void terminal_handle_scroll_input(uint8_t scan_code);
 void terminal_show_scroll_status(void);

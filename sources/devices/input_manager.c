@@ -1,6 +1,5 @@
 #include "input_manager.h"
-#include <stdint.h>
-#include <stdbool.h>
+#include "types.h"
 
 #define KB_DATA_PORT 0x60
 #define KB_STATUS_PORT 0x64
